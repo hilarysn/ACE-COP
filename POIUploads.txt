@@ -1,0 +1,415 @@
+<style>
+#tblJSON {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	margin: 8px;
+	text-align: left;
+	width:980px;
+	border: 0px;
+	border-collapse:collapse;	
+}
+#tblJSON .tblFolderHide {
+	font-weight: bold;
+	font-size: 12px;
+	color: #039;
+	padding: 7px 17px 7px 17px;
+	border-top: 1px solid #69c;
+	border: 1px solid #69c;
+	background: #d0dafd;
+}
+
+#tblJSON .tblEventHide {
+	font-weight: bold;
+	font-size: 11px;
+	color: #303030;
+	padding: 4px 14px 4px 14px;
+	border-top: 1px solid #69c;
+	border: 1px solid #69c;
+	background: #d8d8d8;
+}
+
+#tblJSON .tblHeader {
+	padding: 8px 10px 8px 10px;
+	font-weight: normal;
+	font-size: 12px;
+	color: #202020;
+	border-bottom: 1px dashed #69c;
+	background: #ffc;
+}
+#tblJSON .tblFile {
+	padding: 7px 17px 7px 17px;
+	color: #202020;
+	vertical-align:top;
+	white-space: nowrap;
+}
+#tblJSON .trHover:hover {
+	background: #E8E8E8;
+}
+#tblJSON .tblFile a {
+	color: #006;
+	text-decoration: none;
+}
+
+#tblJSON .editBtn {
+    padding: 3px;
+}
+#tblJSON .editBtn a {
+    font: bold 11px Arial;
+    text-decoration: none;
+    background-color: #d0dafd;
+    color: #202020;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+}
+
+</style>
+
+<script type="text/javascript">
+
+var blnDebug = false;
+var UserType = 0;
+
+var parseCAML = function(str) {
+    return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+}
+
+var getFileName = function(varFile){
+	varText = varFile.substring(0,varFile.indexOf("."));
+	varText = varText.replace(/_/g," ");
+	return varText;
+}
+
+var getFileNameURL = function(varFile){
+	varText = varFile.replace(/^.*[\\\/]/, '');
+	return varText;
+}
+
+var getCourseID = function(varID){
+	varText = "";
+	if($.trim(varID) != '' && $.trim(varID) != "NA"){
+		varText = varID.substring((varID.indexOf("#")+1),varID.length);;
+	}else{
+		varText = "----";
+	}
+	return varText;
+}
+
+var getUploadBy = function(varAuthor){
+	varText = varAuthor.substring((varAuthor.indexOf("#")+1),varAuthor.length);
+	return varText;
+}
+
+var getAttachment = function(lclItemID){
+	var link="";
+			
+	$().SPServices({
+		operation: "GetAttachmentCollection",
+		async: false,
+		listName: "{83943C6D-0F91-4955-98F6-2F237F81B098}",  //POI List
+		ID: lclItemID,
+		completefunc: function (xData, Status) {
+			$(xData.responseXML).find("Attachment").each(function() {
+				link +=	"<a href='"+ $(this).text() + "'><img src='/_layouts/images/attach.gif' alt='Attachment' style='border:0px;vertical-align:bottom'/>&nbsp;&nbsp;"+ getFileNameURL($(this).text()) +"</a><br/>";
+			});
+		}
+	});
+	
+	if(link.length <=1){ link = "<label style='color:red'>No File(s) Loaded</label>"; }
+	return link;
+
+}
+
+var getSchoolID = function(obj){
+	var valID = 0;
+	valID = $.trim(obj.School.substring(0,obj.School.indexOf(";")));
+	return valID;
+}
+
+var makeSchoolRow = function(obj){
+	var row = null;
+	var cell = null;
+	var txtContent = obj.School.substring(obj.School.indexOf("#")+1)
+	row = $('<tr></tr>');
+	cell = "<td colspan='6' class='tblFolderHide'>"+ txtContent  +"</td>";
+	row.append(cell);
+	
+	return row;
+}
+
+var getEventID = function(obj){
+	var valID = 0;
+	valID = $.trim(obj.POIEvent.substring(0,obj.POIEvent.indexOf(";")));
+	return valID;
+}
+
+var makeEventRow = function(obj){
+	var row = null;
+	var cell = null;
+	var txtContent = obj.POIEvent.substring(obj.POIEvent.indexOf("#")+1);
+		
+	row = $('<tr></tr>');
+	cell = "<td colspan='6' class='tblEventHide'>"+ txtContent  +"</td>";
+	row.append(cell);
+	
+	return row;
+}
+
+var addHeaderRow = function(){
+	var row = $('<tr></tr>');
+	
+	var	cell = "";
+	cell += "<td class='tblHeader' width='1%' align='center' nowrap>ACE ID</td><td class='tblHeader' width='1%' nowrap>Course-Phase</td>";
+	cell += "<td class='tblHeader'>Program of Instruction (POI)</td><td class='tblHeader'>Documents</td><td class='tblHeader' nowrap>MOS/AOC</td>";
+	cell += "<td class='tblHeader' nowrap>Course/Occupation</td>";
+	
+	row.append(cell);
+	
+	return row;
+
+}
+
+var addLineItem = function(obj){
+	var row = null;
+
+	row = $('<tr class="trHover"></tr>');
+	cell = "";
+	cell += "<td class='tblFile' align='center' width='1%' nowrap>"+ obj.ACEID +"</td>";
+	cell += "<td class='tblFile' align='center' width='1%' nowrap>"+ obj.Course_Phase +"</td>";
+	cell += "<td class='tblFile'>" + obj.Title + "</td>";
+	cell += "<td class='tblFile'>" + getAttachment(obj.listItemID) + "</td>";			
+	cell += "<td class='tblFile' width='1%' nowrap>" + obj.MOS_AOC.substring((obj.MOS_AOC.indexOf("#")+1),obj.MOS_AOC.length) + "</td>";
+	cell += "<td class='tblFile' width='1%' nowrap>" + obj.Content_Type + "</td>";
+	row.append(cell);
+	
+	return row;
+}
+
+var parseJSON = function(varMD) {
+	var table = $('#tblJSON');
+	var schoolID = 0;
+	var event = 0;
+	var folderCount = 0;
+	var eventCount = 0;
+	var eachCount = 0;
+
+	$.each(varMD, function(id, obj){
+
+		if(schoolID != getSchoolID(obj)){
+			schoolID = getSchoolID(obj);
+			table.append(makeSchoolRow(obj));
+			if(event != getEventID(obj)){
+				event = getEventID(obj);
+				table.append(makeEventRow(obj));
+				table.append(addHeaderRow()); 
+				table.append(addLineItem(obj));
+			}else{
+				table.append(addLineItem(obj));
+			}
+		}else{
+			schoolID = getSchoolID(obj);
+			if(event != getEventID(obj)){
+				event = getEventID(obj);
+				table.append(makeEventRow(obj));
+				table.append(addHeaderRow()); 
+				table.append(addLineItem(obj));
+			}else{
+				table.append(addLineItem(obj));
+			}
+		}
+	});
+	
+    if(folderCount <= 1){
+		$('#tblJSON tr.tblFolderHide').remove();
+    }
+}
+
+
+var buildDocs = function(currentUser){
+	var siteURL = $().SPServices.SPGetCurrentSite();  //Go to the Parent Level
+	var howManySchools;
+	var userCAML = "";
+	var listID = "";
+	var idSchool = 0;
+	var tblJSON = "";
+
+	if(UserType == 1){
+		listID = "{0A2221D8-473C-40CD-B515-FF4A84F43D76}"; //GUID for Proponent School Contacts
+		userCAML = "<Query><OrderBy><FieldRef Name='Proponent_x0020_School'></FieldRef></OrderBy><Where><And><Contains><FieldRef Name='SharePoint_x0020_Acct'></FieldRef><Value Type='Text'>"+ currentUser +"</Value></Contains><Eq><FieldRef Name='Active'></FieldRef><Value Type='Boolean'>1</Value></Eq></And></Where></Query>";
+	}else{
+		if(UserType == 2){
+			listID = "{A07AD4EE-C74B-4872-83B7-985985175805}"; //GUID for Proponent Schools
+			userCAML = "<Query><OrderBy><FieldRef Name='ID'></FieldRef></OrderBy></Query>";
+		}else{
+			$("#DocsHeader").hide();
+			$("#tblJSON").append("<tr><td><font style='color:red;text-align:justify;'><h2>View Not Authorized</h2></font></td></tr>");
+			$("#tblJSON").append("<tr><td><font style='color:black;text-align:justify;'><h4>Please close this window or use the back button to return to the ACE COP interface.</h2></font></td></tr>");
+		}
+	}
+		
+	$().SPServices({
+		 operation: "GetListItems",
+		 async: false,
+		 listName: listID,
+		 webURL: siteURL,
+		 CAMLQuery: userCAML,
+		 completefunc: function (xData, Status) {
+			if(blnDebug){
+			 	var out = $().SPServices.SPDebugXMLHttpResult({
+					node: xData.responseXML
+			 	});
+			 	$("#WSOutput").append("<br/>" + out);
+			 }
+
+		    $(xData.responseXML).SPFilterNode("z:row").each(function() {
+		    	if(UserType == 1){
+			        idSchool = $(this).attr("ows_Proponent_x0020_School");
+			        idSchool = idSchool.substr(0, idSchool.indexOf(';'));
+			    }else{
+			        idSchool = $(this).attr("ows_ID");
+			    }
+
+				parseJSON(getListData(idSchool));
+
+ 			});
+		}
+	});
+
+}
+
+var getListData = function(varSchoolID){
+	var dataJSON;
+	var linkHREF = "";
+	var varQueryOptions = "<QueryOptions><ViewAttributes Scope='RecursiveAll' IncludeRootFolder='True' /></QueryOptions>";
+	var siteURL = $().SPServices.SPGetCurrentSite();
+
+	var varCAML = "<Query><OrderBy><FieldRef Name='ContentType'></FieldRef></OrderBy><Where>";
+   	varCAML +="<Eq><FieldRef Name='Proponent_x0020_School' LookupId='TRUE'></FieldRef><Value Type='Lookup'>"+ varSchoolID + "</Value></Eq>";
+	varCAML +="</Where></Query>";
+	
+	$().SPServices({
+		operation: "GetListItems",
+		async: false,
+		listName: "{83943C6D-0F91-4955-98F6-2F237F81B098}",  //Proponent POI List
+		viewName: "{E52A0A8E-0590-48B6-9AA0-223F62783DEE}",  //all items view
+		webURL: siteURL,
+		CAMLQuery: varCAML,
+		CAMLRowLimit: 100000,
+		CAMLQueryOptions: varQueryOptions,     
+		completefunc: function (xData, Status) {
+			if(blnDebug){
+			 	var out = $().SPServices.SPDebugXMLHttpResult({
+					node: xData.responseXML
+			 	});
+			 	$("#WSOutput").append("<br/>" + out);
+			 }
+
+			dataJSON = $(xData.responseXML).SPFilterNode("z:row").SPXmlToJson({
+				mapping: {
+					ows_ID: { mappedName: "listItemID", objectType: "Text" },
+					ows_Attachments: { mappedName: "blnAttachment", objectType: "Text" },
+					ows_Title: { mappedName: "Title", objectType: "Text" },
+					ows_ACE_x0020_ID: { mappedName: "ACEID", objectType: "Text" },
+					ows_POI_x0020_Evaluation_x0020_Event: { mappedName: "POIEvent", objectType: "Text" },
+					ows_Proponent_x0020_School: { mappedName: "School", objectType: "Text" },
+					ows_Course_x0020_and_x0020_Phase: { mappedName: "Course_Phase", objectType: "Text" },
+					ows_MOS_x002F_AOC: { mappedName: "MOS_AOC", objectType: "Text" },
+					ows_ContentType: { mappedName: "Content_Type", objectType: "Text" }
+				},
+				includeAllAttrs: false,
+				removeOws: false
+			});
+		}
+	});
+
+	return dataJSON;
+}
+
+var checkUser = function(currentUser){
+	//Evaluation Members = {6DC249E0-6A6E-40C4-8B65-4E77360DDD5E}
+	//Proponent Contacts = {0A2221D8-473C-40CD-B515-FF4A84F43D76}
+
+	var siteURL = $().SPServices.SPGetCurrentSite();  //Go to the Parent Level
+	var userCAML = "<Query><Where><And><Contains><FieldRef Name='SharePoint_x0020_Acct'></FieldRef><Value Type='Text'>"+ currentUser +"</Value></Contains><Eq><FieldRef Name='Active'></FieldRef><Value Type='Boolean'>1</Value></Eq></And></Where></Query>";
+	console.log('userCAML: ',userCAML);
+
+	
+	//Proponent School Contacts (an actual list!) at https://hq.tradoc.army.mil/sites/ACE/Lists/Proponent%20School%20Contacts/AllItems.aspx
+	$().SPServices({
+		 operation: "GetListItems",
+		 async: false,
+		 listName: "{0A2221D8-473C-40CD-B515-FF4A84F43D76}", //GUID for Proponent School Contacts
+		 webURL: siteURL,
+		 CAMLQuery: userCAML,
+		 completefunc: function (xData, Status) {
+			if(blnDebug){
+			 	var out = $().SPServices.SPDebugXMLHttpResult({
+					node: xData.responseXML
+			 	});
+			 	$("#WSOutput").append("<br/>" + out);
+			 }
+			 
+			 if($(xData.responseXML).SPFilterNode("rs:data").attr("ItemCount") > 0 ){ UserType = 1; }			
+		}
+	});
+	
+	//Evaluation Members (an actual list!) at https://hq.tradoc.army.mil/sites/ACE/Lists/Evaluation%20Members/AllItems.aspx
+	$().SPServices({
+		 operation: "GetListItems",
+		 async: false,
+		 listName: "{6DC249E0-6A6E-40C4-8B65-4E77360DDD5E}", //GUID for Evaluation Members
+		 webURL: siteURL,
+		 CAMLQuery: userCAML,
+		 completefunc: function (xData, Status) {
+			if(blnDebug){
+			 	var out = $().SPServices.SPDebugXMLHttpResult({
+					node: xData.responseXML
+			 	});
+			 	$("#WSOutput").append("<br/>" + out);
+			 }
+
+			if($(xData.responseXML).SPFilterNode("rs:data").attr("ItemCount") > 0 ){ UserType = 2; }
+		}
+	});
+	
+	if(UserType > 0){
+		return true;
+	}
+	
+	return false;
+}
+
+$(document).ready(function() {
+	if(checkUser($().SPServices.SPGetCurrentUser({ fieldName: "Name", debug: false }))){
+		buildDocs($().SPServices.SPGetCurrentUser({ fieldName: "Name", debug: false }));
+	}else{
+		$("#DocsHeader").hide();
+		$("#tblJSON").append("<tr><td><font style='color:red;text-align:justify;'><h2>View Not Authorized</h2></font></td></tr>");
+		$("#tblJSON").append("<tr><td><font style='color:black;text-align:justify;'><h4>Please close this window or use the back button to return to the ACE COP interface.</h2></font></td></tr>");
+	}
+	
+});
+</script>
+<table id="JSONDocs" border="0" cellpadding="0" cellspacing="0">
+	<tr class="ms-WPHeader" id="DocsHeader">
+		<td align="left" class="ms-wpTdSpace">&nbsp;</td>
+		<td title="Documents" id="DocsList" class="ms-WPHeaderTd">
+			<h3 style="text-align:justify;" class="ms-standardheader ms-WPTitle"><nobr><span>
+			Provided POI Documents</span></nobr></h3>
+		</td>
+	</tr>
+	<tr>
+		<td align="left" class="ms-wpTdSpace">&nbsp;</td>
+		<td>
+			<table id="tblJSON" class="tblDocs"></table>
+		</td>
+	</tr>
+</table>
+<div id="WSOutput" width="100%"></div>

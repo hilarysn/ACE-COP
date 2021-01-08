@@ -1,0 +1,8 @@
+<link href="/sites/ACE/Style%20Library/Custom/navbar.css" rel="stylesheet"/>
+<div id="navbar">
+	<ul>
+		<a id="btnLoadCourse"><li>Load Course POI</li></a>
+		<a id="btnLoadOccupation"><li>Load Occupation POI</li></a>
+		<a id="btnPOIDocs"><li>Provided POI Documents</li></a>
+	</ul>
+</div>

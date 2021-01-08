@@ -1,0 +1,24 @@
+<link href="/sites/ACE/Style%20Library/Custom/navbar.css" rel="stylesheet"/>
+<div id="navbar">
+	<ul>
+		<a href="/sites/ACE/Lists/Evaluation%20Members"><li>Evaluation Members</li></a>
+		<a href="/sites/ACE/Lists/Organizations"><li>Organizations / Centers of Excellence</li></a>
+		<a href="/sites/ACE/_layouts/listform.aspx?PageType=8&amp;ListId={D42E9646-E923-4616-93A8-21D5C170DA25}"><li>Add Announcement</li></a>
+		<a href="/sites/ACE/_layouts/Upload.aspx?List={744B9C78-9B3E-41BD-98AF-B97268815DB6}"><li>Add Useful Documents</li></a>
+		<!--<a id="btnSchedule"><li>Toggle Schedule</li></a>-->
+	</ul>
+</div>
+<hr style="height:2px;border:none;color:#000;background-color:#000;" />
+<div id="navbar">
+	<ul>
+		<a href="/sites/ACE/Lists/Program%20Evaluation%20Schedule"><li>Program Schedule</li></a>
+		<a href="/sites/ACE/Lists/Proponent%20School"><li>Proponent Schools</li></a>
+		<a href="/sites/ACE/Lists/Proponent%20School%20Contacts"><li>School Contacts</li></a>
+		<a href="/sites/ACE/Lists/Proponent%20POI/LoadedDocs.aspx"><li>POI Document Repository</li></a>
+	</ul>
+</div>
+<script type="text/javascript">
+$(document).ready(function () {
+ $("a#btnSchedule").click(function(){ $('#MSOZoneCell_WebPartWPQ2').toggle(); });
+});
+</script>

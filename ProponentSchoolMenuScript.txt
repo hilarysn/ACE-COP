@@ -1,0 +1,6 @@
+<script type="text/javascript">
+$(document).ready(function () {
+ $("a#btnLoadCourse").click(function(){ document.location.href ='/sites/ACE/Lists/Proponent%20POI/NewForm_mod.aspx?Source=%2Fsites%2FACE%2FPages%2FACE-PS%2Easpx&ContentTypeId=0x01009FEAAECCAE2009468B15993FC1D63BEB00873AE55CE28F7846ADA4FBA45B06D18F'; }); 
+ $("a#btnLoadOccupation").click(function(){ document.location.href ='/sites/ACE/Lists/Proponent%20POI/NewForm_mod.aspx?Source=%2Fsites%2FACE%2FPages%2FACE-PS%2Easpx&ContentTypeId=0x01009FEAAECCAE2009468B15993FC1D63BEB0100B5E417D14FF1B348901EFB725A4DCC5A'; }); 
+ $("a#btnPOIDocs").click(function(){ document.location.href = '/sites/ACE/Lists/Proponent%20POI/LoadedDocs.aspx'; });  
+});</script>
